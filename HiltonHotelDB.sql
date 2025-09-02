@@ -2,14 +2,24 @@ DROP TABLE IF EXISTS reservation CASCADE;
 DROP TABLE IF EXISTS rooms CASCADE;
 DROP TABLE IF EXISTS guest CASCADE;
 DROP TABLE IF EXISTS hotel CASCADE;
+DROP TABLE IF EXISTS users CASCADE;
 
 
 DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'room_type') THEN
-        CREATE TYPE room_type AS ENUM ('SINGLE', 'DOUBLE', 'SUITE');
+        CREATE TYPE room_type AS ENUM ('SINGLE', 'DOUBLE');
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'user_role') THEN
+        CREATE TYPE user_role AS ENUM ('GUEST', 'ADMINISTRATOR');
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'reservation_status') THEN
+        CREATE TYPE reservation_status AS ENUM ('PENDING', 'CONFIRMED', 'REJECTED');
     END IF;
 END$$;
+
 
 
 CREATE TABLE hotel (
@@ -50,8 +60,17 @@ CREATE TABLE reservation (
     hotel_id INT NOT NULL,
     check_in_date DATE NOT NULL,
     check_out_date DATE NOT NULL,
-    status VARCHAR(50) NOT NULL,
+    status reservation_status NOT NULL DEFAULT 'PENDING',
     CONSTRAINT fk_reservation_guest FOREIGN KEY (guest_id) REFERENCES guest(guest_id) ON DELETE CASCADE,
     CONSTRAINT fk_reservation_room FOREIGN KEY (room_id) REFERENCES rooms(room_id) ON DELETE CASCADE,
     CONSTRAINT fk_reservation_hotel FOREIGN KEY (hotel_id) REFERENCES hotel(hotel_id) ON DELETE CASCADE
+);
+
+
+
+CREATE TABLE users (
+    user_id SERIAL PRIMARY KEY,
+    username VARCHAR(255) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    role user_role NOT NULL
 );
