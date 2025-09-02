@@ -1,5 +1,5 @@
 package org.example.menu;
 
-public interface Menu {
+public interface MenuInterface {
     void printMenu();
 }
